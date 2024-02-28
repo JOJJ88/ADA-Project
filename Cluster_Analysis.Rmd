@@ -1,0 +1,311 @@
+---
+title: "ADA Group Assignment 1"
+output: html_document
+date: "2024-02-28"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(readxl)
+library(lubridate)
+```
+
+## Data Preparation
+
+```{r}
+# Import data
+df <- read_xlsx("loan_data_ADA_assignment.xlsx",sheet="in")
+```
+
+```{r}
+# Check structure and summary
+str(df)
+summary(df)
+```
+
+```{r}
+# Check if each customer id is unique
+n_distinct(df$member_id)
+```
+
+```{r}
+# Check the distribution of loan amount (numeric continuous variable) in histogram
+ggplot(df) + geom_histogram(aes(loan_amnt), binwidth=1000) +
+  labs(y = "Count", x = "Loan Amount", title = "Distribution of Applied Loan Amount")
+```
+
+```{r}
+# Check the distribution of funded amount (numeric continuous variable) in histogram
+ggplot(df) + 
+  geom_histogram(aes(funded_amnt), binwidth=1000) +
+  labs(y = "Count", x = "Funded Amount", title = "Distribution of Funded Amount")
+```
+
+We can see there is not much difference in the distribution between loan_amnt and funded_amnt. Hence, most customers receive the exact loan amount they applied for except for a small number of exceptions.
+
+
+```{r}
+# Compare the value of loan_amnt to funded_amnt
+sum(df$funded_amnt < df$loan_amnt)
+
+# 34 cases where actual funded amount is smaller than loan amount (really small percentage)
+
+df_diff <- filter(df, funded_amnt < loan_amnt)
+
+df_diff <- mutate(df_diff, difference = loan_amnt-funded_amnt)
+
+ggplot(df_diff) + 
+  geom_histogram(aes(difference), binwidth=1000) +
+  labs(y = "Count", x = "Difference between Loan Amount and Funded Amount", title = "Distribution of Difference between Loan Amount and Funded Amount")
+
+# Difference in loan amount is not negligible amount, the magnitude of the difference is quite significant. Hence, we will be including the calculated difference between applied loan amount and actual funded amount.
+```
+
+```{r}
+# Check the distribution of term (categorical variable) in bar chart
+df$term <- as.factor(df$term)
+
+ggplot(df,aes(x = term)) + geom_bar() +
+  labs(y = "Count", x = "Term (in months)", title = "Bar Chart of Loan Term")
+```
+
+```{r}
+# Check the distribution of employment length
+ggplot(df) + geom_histogram(aes(emp_length), binwidth=1) +
+  labs(y = "Count", x = "Employment Length", title = "Distribution of Employment Length")
+
+# Most customers are employed for around 10 years
+```
+
+```{r}
+# Check the distribution of grade and sub-grade
+df$grade <- as.factor(df$grade)
+
+ggplot(df,aes(x = grade)) + geom_bar() +
+  labs(y = "Count", x = "Grade", title = "Bar Chart of Grade")
+
+df$sub_grade <- as.factor(df$sub_grade)
+
+ggplot(df,aes(x = sub_grade)) + geom_bar() +
+  labs(y = "Count", x = "Sub-Grade", title = "Bar Chart of Sub-Grade") +
+    scale_x_discrete(guide = guide_axis(angle = 90))
+
+# Most customers are centered around low A to high C range, with the highest number of customers in grade B
+
+```
+
+```{r}
+# Check the distribution of loan status
+df$loan_status <- as.factor(df$loan_status)
+
+ggplot(df,aes(x = loan_status)) + geom_bar() +
+  labs(y = "Count", x = "Loan Status", title = "Bar Chart of Loan Status")
+
+# Most customers are past customers with a small number of 'current'customers. Majority fall under the 'fully paid' category.
+```
+
+```{r}
+# Check the distribution of loan purpose
+df$purpose <- as.factor(df$purpose)
+
+ggplot(df,aes(x = purpose)) + geom_bar() +
+  labs(y = "Count", x = "Loan Purpose", title = "Bar Chart of Loan Purpose") +
+  scale_x_discrete(guide = guide_axis(angle = 45))
+
+# Most customers take loans to repay credit card debt or for debt consolidation
+```
+
+```{r}
+# Check the distribution of interest rate
+ggplot(df) + geom_histogram(aes(int_rate), binwidth=1, col="white") +
+  scale_x_continuous(breaks=seq(5,26,1))
+  labs(y = "Count", x = "Interest Rate", title = "Distribution of Interest Rate")
+
+# Interest rate ranges from 6 to 25, with the highest count around 13-14%
+```
+
+```{r}
+# Check the distribution of debt to income ratio
+ggplot(df) +geom_histogram(aes(dti), binwidth=1, col="white") +
+  scale_x_continuous(breaks=seq(-1,36,1)) +
+  labs(y = "Count", x = "dti", title = "Distribution of Debt to Income Ratio (dti)")
+
+# Distribution is symmetrical and clustered around 17%
+```
+
+```{r}
+# Check the distribution of revolving line utilization rate
+ggplot(df) + geom_histogram(aes(revol_util), binwidth=0.03,col="white") +
+  scale_x_continuous(breaks=seq(0,1.1, 0.1)) +
+  labs(y = "Count", x = "Revolving line utilisation rate", title = "Distribution of Revolving Line Utilisation Rate")
+
+# Histogram is right-skewed towards 1, suggesting the most customers spend a relatively high % of the credit lines they have taken
+```
+
+```{r}
+# Check the distribution of annual income (numeric continuous variable) in histogram
+ggplot(df) + geom_histogram(aes(annual_inc), binwidth=10000) +
+  labs(y = "Count", x = "Annual Income", title = "Distribution of Annual Income")
+
+top_income <- top_n(df, 50, df$annual_inc)
+
+# Interesting thing to note is there are a very small number (around 7) of people with extremely high annual income above 1000k, that are outliers, but their income are verified. The top customers with the highest income tend to be verified. Hence, we do not remove these outliers as their income are reliable and they could be a potential minority group of customers.
+
+matching_rows <- df$id %in% top_income$id
+
+# Remove the subset rows from the population
+without_outliers <- df[!matching_rows, ]
+
+# Distribution of annual income without outliers
+ggplot(without_outliers) + geom_histogram(aes(annual_inc), binwidth=10000) +
+  labs(y = "Count", x = "Annual Income", title = "Distribution of Annual Income")
+```
+
+```{r}
+# Detect NA value
+sum(is.na(df))
+
+# There are 228899 empty cells in df
+
+sum(rowSums(is.na(df)) > 0)
+# There are 49941 rows with at least an empty cell in its row
+
+sum(rowSums(is.na(df)) > 0)/nrow(df)
+# 99.8% of rows have at least an empty cell in its row
+```
+
+```{r}
+# Check the percentage of missing data of the column mths_since_last_delinq
+sum(is.na(df$mths_since_last_delinq))/nrow(df)
+
+# Because the percentage of missing data is not very high (56.2%), we do not drop the column and instead replace NA values with the mean.
+
+df$mths_since_last_delinq[is.na(df$mths_since_last_delinq)] <- mean(df$mths_since_last_delinq, na.rm = TRUE)
+```
+
+```{r}
+# Check the percentage of missing data of the column mths_since_last_record
+sum(is.na(df$mths_since_last_record))/nrow(df)
+
+# Because the percentage of missing data is high (94.9%), drop the column
+```
+
+```{r}
+# Check the percentage of missing data of the column mths_since_last_major_derog
+sum(is.na(df$mths_since_last_major_derog))/nrow(df)
+
+# Because the percentage of missing data is high (85.8%), drop the column
+```
+
+```{r}
+# Check the percentage of missing data of the column emp_length
+sum(is.na(df$emp_length))/nrow(df)
+
+# Because the percentage of missing data is low (3.6%), we do not drop the column and instead replace NA values with the mean.
+
+df$emp_length[is.na(df$emp_length)] <- mean(df$emp_length, na.rm = TRUE)
+```
+
+```{r}
+# Check the percentage of missing data of the column revol_util
+sum(is.na(df$revol_util))/nrow(df)
+
+# Because the percentage of missing data is very low (0.062%), we do not drop the column and instead replace NA values with the mean.
+
+df$revol_util[is.na(df$revol_util)] <- mean(df$revol_util, na.rm = TRUE)
+```
+
+There are the same number of missing data rows for tot_coll_amt, tot_cur_bal and total_credit_rv. Upon closer inspection, we realise that they all belong to the same rows.
+
+```{r}
+# Check the percentage of missing data of the columns tot_coll_amt, tot_cur_bal and total_credit_rv
+sum(is.na(df$tot_coll_amt))/nrow(df)
+sum(is.na(df$tot_cur_bal))/nrow(df)
+sum(is.na(df$total_credit_rv))/nrow(df)
+
+# Because the percentage of missing data is not very high (29.2%), we do not drop the column and instead replace NA values with the mean of the remaining available data in that column.
+
+df$tot_coll_amt[is.na(df$tot_coll_amt)] <- mean(df$tot_coll_amt, na.rm = TRUE)
+df$tot_cur_bal[is.na(df$tot_cur_bal)] <- mean(df$tot_cur_bal, na.rm = TRUE)
+df$total_credit_rv[is.na(df$total_credit_rv)] <- mean(df$total_credit_rv, na.rm = TRUE)
+```
+
+### Feature engineering: Create calculated fields
+```{r}
+# create loan minus funded amnt (numeric variable)
+df <- df %>% mutate(loan_funded_amnt = loan_amnt - funded_amnt)
+
+# create no. of months since last credit pull (numeric variable)
+df$months_since_last_credit_pull <- (interval((df$issue_d), (df$last_credit_pull_d)) %/% months(1))
+
+```
+
+
+```{r}
+# Made a list of column that need to drop
+
+drop_column <- c('id','member_id','funded_amnt_inv','emp_title','issue_d','desc','title','zip_code','earliest_cr_line','total_pymnt_inv','total_rec_prncp','total_rec_int','total_rec_late_fee','recoveries','collection_recovery_fee','last_pymnt_d','last_pymnt_amnt','next_pymnt_d','collections_12_mths_ex_med','policy_code','addr_state','term','home_ownership','verification_status','purpose','loan_is_bad','pymnt_plan','grade','mths_since_last_major_derog','mths_since_last_record','loan_amnt', 'last_credit_pull_d')
+
+# We drop "grade" because it is highly correlated with "sub-grade", and "sub-grade" provides more information than "grade"
+
+# We drop "loan_amnt" after we have used it to calculate "loan-funded amnt"
+
+# We drop "last_credit_pull_d" because it is a date variable and not numeric. 
+```
+
+```{r}
+# Drop the columns
+df2 <- df %>% select(-drop_column)
+
+# Drop missing data
+df3 <- na.omit(df2)
+
+sum(is.na(df2))
+# All missing data has been filled, no NAs
+
+summary(df2)
+```
+
+```{r}
+# Make a sample 500
+set.seed(100)
+sample <- sample_n(df3, 500)
+```
+ 
+```{r}
+# Integer encoding for 'subgrade'
+
+sample$sub_grade <- recode(sample$sub_grade,"A1"=35,"A2"=34,"A3"=33,"A4"=32,"A5"=31,"B1"=30,"B2"=29,"B3"=28,"B4"=27,"B5"=26,"C1"=25,"C2"=24,"C3"=23,"C4"=22,"C5"=21,"D1"=20,"D2"=19,"D3"=18,"D4"=17,"D5"=16,"E1"=15,"E2"=14,"E3"=13,"E4"=12,"E5"=11,"F1"=10,"F2"=9,"F3"=8,"F4"=7,"F5"=6,"G1"=5,"G2"=4,"G3"=3,"G4"=2,"G5"=1)
+```
+
+```{r}
+# Loan Status. Check its level.
+sample$loan_status <- as.factor(sample$loan_status)
+levels(sample$loan_status)
+
+# Level still based on assumption
+sample$loan_status <- recode(sample$loan_status,"Charged Off"=1,"Late (31-120 days)"=2,"Late (16-30 days)"=3,"In Grace Period"=4, "Fully Paid"=5,"Current"=6)
+```
+
+## Data Normalization
+```{r}
+#Normalize the data
+sample_norm <- mutate(sample, loan_amnt_norm = scale(loan_amnt),
+                      funded_amnt_norm = scale(funded_amnt),
+                      int_rate_norm = scale(int_rate),
+                      dti_norm = scale(dti),
+                      installment_norm = scale(installment),
+                      annual_inc_norm = scale(annual_inc),
+                      revol_bal_norm = scale(revol_bal),
+                      total_pymnt_norm = scale(total_pymnt),
+                      tot_cur_bal_norm = scale(tot_cur_bal),
+                      total_credit_rv_norm = scale(total_credit_rv))
+
+sample_norm_updated <- sample_norm[, -c(1, 2, 3, 4, 7, 9, 15, 18, 22, 23)] 
+```
+
+## Mahalanobi's
+```{r}
+
+```
