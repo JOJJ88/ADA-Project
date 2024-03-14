@@ -376,9 +376,10 @@ Maha2 <- mahalanobis(sample, colMeans(sample), cov(sample))
 print(Maha2) # prints Mahalanobis distance
 
 MahaPvalue2 <-pchisq(Maha2, df=10,lower.tail = FALSE) # prints the p-value for each Mahalanobis distance
-sample_maha2 <- cbind(sample, Maha2, MahaPvalue2) 
+sample_maha2 <- cbind(sample, Maha2, MahaPvalue2)
+sample_maha2 <- sample_maha2 %>% select(-acc_now_delinq)
 sample_maha_updated2 <- sample_maha2 %>% filter(MahaPvalue2 > 0.001) # only keep the rows which p-value is greater than 0.001 as those smaller than 0.001 are considered outliers
-sample_maha_updated2 <- sample_maha_updated2[-c(19:20)]
+sample_maha_updated2 <- sample_maha_updated2[-c(18:19)]
 ```
 
 For normalised sample:
@@ -388,10 +389,11 @@ print(Maha)# prints Mahalanobis distance
 
 MahaPvalue <-pchisq(Maha, df=10,lower.tail = FALSE)# prints the p-value for each Mahalanobis distance
 sample_maha <- cbind(sample_norm, Maha, MahaPvalue)
+sample_maha <- sample_maha %>% select(-acc_now_delinq)
 sample_maha_outlier <- sample_maha %>% filter(MahaPvalue < 0.001)
 sample_maha_updated <- sample_maha %>% filter(MahaPvalue > 0.001)
-sample_maha_updated <- sample_maha_updated[-c(19:20)]
-sample_maha <-sample_maha[-c(19:20)]
+sample_maha_updated <- sample_maha_updated[-c(18:19)]
+sample_maha <-sample_maha[-c(18:19)]
 ```
 
 For normalised sample:
@@ -498,6 +500,7 @@ fviz_gap_stat(gap_stat_k2) # without outliers
 ```
 From the plot we can see that the gap statistic is high at k=3. This suggests that the outliers may form a cluster of their own.
 
+# Run k-means
 ```{r}
 set.seed(55)
 k_cl <- kmeans(sample_maha,5,nstart=25) # with outliers
@@ -510,22 +513,60 @@ k_cl2 <- kmeans(sample_maha_updated,6,nstart=25) # without outliers
 k_cl2
 ```
 
-# Assign cluster labels to each data point
-```{r}
-sample_maha$cluster <- k_cl$cluster
-sample_maha_updated$cluster <- k_cl2$cluster
-```
-
-```{r}
-sample_maha$cluster <- as.factor(sample_maha$cluster)
-
-```
-
+# Show centroid values
 ```{r}
 k_cl$centers
 ```
 
 ```{r}
 k_cl2$centers
+```
+
+
+# Assign cluster labels to each data point
+```{r}
+sample_maha$cluster <- k_cl$cluster
+sample_maha_updated$cluster <- k_cl2$cluster
+```
+
+# Create elbow plot
+```{r}
+sample_maha$cluster <- as.factor(sample_maha$cluster)
+# Define a range of k values to explore (adjust based on your data)
+k_values <- 1:10
+
+# Empty list to store WSS for different k values
+wss_list <- list()
+
+# Function to calculate WSS within a loop
+calculate_wss <- function(data, k) {
+  # Perform K-Means clustering with specific k
+  kmeans_result <- kmeans(data, centers = k, nstart = 10)
+  
+  # Calculate within-cluster sum of squares
+  wss <- sum(kmeans_result$withinss)
+  return(wss)
+}
+
+# Loop through k values and calculate WSS
+for (k in k_values) {
+  wss_list[[k]] <- calculate_wss(features, k)
+}
+
+# Combine results into a data frame
+wss <- unlist(wss_list)
+elbow_data <- data.frame(k = k_values, wss = wss)
+
+# Create the ggplot for the elbow plot
+library(ggplot2)
+ggplot(elbow_data, aes(x = k, y = wss)) +
+  geom_line() +
+  labs(title = "Elbow Plot", x = "Number of Clusters (k)", y = "Within-Cluster Sum of Squares (WSS)") +
+  theme_classic() +
+  theme(
+    plot.title = element_text(size = 14, face = "bold"),
+    axis.text.x = element_text(size = 12),
+    axis.text.y = element_text(size = 12)
+  )
 ```
 
