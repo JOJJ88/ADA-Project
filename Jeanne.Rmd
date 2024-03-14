@@ -680,21 +680,29 @@ k_cl2 <- kmeans(sample_maha_updated,5,nstart=25) # without outliers
 k_cl2
 ```
 
+```{r}
+# k = 3
+set.seed(55)
+k_cl3 <- kmeans(sample_maha_updated,3,nstart=25) # without outliers
+k_cl3
+```
+
 # Show centroid values
 ```{r}
-k_cl$centers
+k_cl$centers # with outliers, k = 5
 ```
 
 ```{r}
-k_cl2$centers
+k_cl2$centers # without outliers, k=5
 ```
 
+```{r}
+k_cl3$centers # without outliers, k=3
+```
 
 # Assign cluster labels to each data point
 ```{r}
 sample_maha$cluster <- k_cl$cluster
 sample_maha_updated$cluster <- k_cl2$cluster
 ```
-
-
 
