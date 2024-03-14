@@ -757,13 +757,14 @@ sample_maha_updated_labelled$cluster <- k_cl2$cluster
 
 # See cluster size
 ```{r}
-sample_maha_updated$cluster <- as.factor(sample_maha_updated$cluster)
-summary(sample_maha_updated)
+sample_maha_updated_labelled$cluster <- as.factor(sample_maha_updated_labelled$cluster)
+summary(sample_maha_updated_labelled)
 ```
 
 ## In order to decide between Hierarchical and Non-Hierarchical Clustering, k=5, we use internal validation to find the % of cases that are assigned to the same cluster. 
 
 ## Internal Validation for Sample without Outlier
+Hierarchical Clustering
 ```{r}
 sample_validation <- sample_n(sample_maha_updated, 200)
 
@@ -779,7 +780,17 @@ plot(Hierar_valid)
 # Cutting tree by no. of clusters
 fit2 <- cutree(Hierar_valid, k = 5 )
 fit2
+
+final_ca2 <- cbind(sample_validation, cluster = fit2)
+head(final_ca)
+hcentres2 <- aggregate(x=final_ca2, by=list(cluster=fit2), FUN="mean")
+print(hcentres2)
 ```
 
-Assign cluster number to sample
+Non-Hierarchical Clustering
+```{r}
+set.seed(55)
+k_cl_valid <- kmeans(sample_validation,5,nstart=25)
+k_cl_valid$centers
 ```
+
