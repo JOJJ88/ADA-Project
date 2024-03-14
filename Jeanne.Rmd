@@ -410,19 +410,19 @@ corrplot(correlation_matrix_spearman, method = "color", addCoef.col = "black",
          width = 30, height = 30)
 ```
 
-For sample:
-```{r}
-numeric_sample <- as.data.frame(lapply(sample_maha_updated2, as.numeric))
-correlation_matrix_spearman <- cor(numeric_sample, method = "spearman")
-print(correlation_matrix_spearman)
+#For sample: (REMOVE)
+#```{r}
+#numeric_sample <- as.data.frame(lapply(sample_maha_updated2, as.numeric))
+#correlation_matrix_spearman <- cor(numeric_sample, method = "spearman")
+#print(correlation_matrix_spearman)
 
-# Visualize Spearman correlation matrix using corrplot
-corrplot(correlation_matrix_spearman, method = "color")
-corrplot(correlation_matrix_spearman, method = "color", addCoef.col = "black",
-         tl.col = "black", tl.srt = 45, tl.cex = 0.6, number.cex = 0.4, mar = c(0,0,1,0), width = 30, height = 30)
-```
+## Visualize Spearman correlation matrix using corrplot
+#corrplot(correlation_matrix_spearman, method = "color")
+#corrplot(correlation_matrix_spearman, method = "color", addCoef.col = "black",
+#         tl.col = "black", tl.srt = 45, tl.cex = 0.6, number.cex = #0.4, mar = c(0,0,1,0), width = 30, height = 30)
+#```
 
-We see that the correlation plots (after removal of outliers) for both unnormalised and normalised samples are the same, suggesting that the same outliers are removed irregardless of normalisation.
+#We see that the correlation plots (after removal of outliers) for both unnormalised and normalised samples are the same, suggesting that the same outliers are removed irregardless of normalisation.
 
 ## Choose the attribute that have pairwise correlation coefficients >0.3
 ```{r}
@@ -472,6 +472,90 @@ print.psych(pcModel3o, cut=0.3, sort=TRUE)
 pcModel3q<-principal(sample_pca, 3, rotate="quartimax")
 print.psych(pcModel3q, cut=0.3, sort=TRUE)
 
+```
+
+## Cluster Analysis- Hierarchical Clustering
+# Define linkage methods
+```{r}
+# sample_ca <- sample_maha_updated %>% select(-acc_now_delinq)
+sample_ca_hc <- scale(sample_maha_updated)
+headTail(sample_ca_hc)
+m <- c("average", "single", "complete", "ward")
+names(m) <- c("average", "single", "complete", "ward")
+```
+
+# Function to compute agglomerative coefficient
+```{r}
+library(cluster)
+ac <- function(x){
+  agnes(sample_ca_hc, method =x)$ac
+}
+```
+
+# Calculate agglomerative coeficient for each clustering linkage method
+```{r}
+sapply(m, ac)
+
+# ward performs the best
+```
+
+
+```{r}
+# Produce plot of clusters vs. gap statistic
+library(factoextra)
+gap_stat_h1 <- clusGap(sample_ca_hc, FUN = hcut, rstart = 25, K.max = 10, B = 50)
+# gap_stat_k1 <- clusGap(sample_ca, FUN = kmeans, nstart = 25, K.max = 10, B = 50)
+gap_stat_h2 <- clusGap(sample_ca_hc, FUN = hcut, rstart = 25, K.max = 20, B = 50)
+# gap_stat_k2 <- clusGap(sample_ca, FUN = kmeans, nstart = 25, K.max = 20, B = 50)
+
+fviz_gap_stat(gap_stat_h1)
+fviz_gap_stat(gap_stat_h2)
+# Both plots shows the number of clusters should be 5 or 7
+
+# fviz_gap_stat(gap_stat_k1)
+# fviz_gap_stat(gap_stat_k2)
+
+```
+
+```{r}
+# Plot dandrogram
+# Finding distance matrix
+distance_mat1 <- dist(sample_ca_hc, method = "euclidean")
+
+set.seed(240)  # Setting seed
+Hierar_cl1 <- hclust(distance_mat1, method = "ward")
+
+Hierar_cl1
+
+plot(Hierar_cl1)
+
+```
+
+```{r}
+# Cutting tree by no. of clusters
+fit1 <- cutree(Hierar_cl1, k = 5 )
+fit1
+
+table(fit1)
+
+fit1_1 <- cutree(Hierar_cl1, k = 3 )
+fit1_1
+
+table(fit1_1)
+```
+
+
+```{r}
+# Hierarchical Clustering without Factor Analysis
+final_ca <- cbind(sample_ca_hc, cluster = fit1)
+head(final_ca)
+hcentres1 <- aggregate(x=final_ca, by=list(cluster=fit1), FUN="mean")
+print(hcentres1)
+
+final_ca_1 <- cbind(sample_ca_hc, cluster = fit1_1)
+head(final_ca_1)
+hcentres1_1 <- aggregate(x=final_ca_1, by=list(cluster=fit1_1), FUN="mean")
+print(hcentres1_1)
 ```
 
 ## K-means clustering
