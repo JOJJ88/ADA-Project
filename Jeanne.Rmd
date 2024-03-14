@@ -667,14 +667,16 @@ ggplot(elbow_data, aes(x = k, y = wss)) +
 
 # Run k-means
 ```{r}
+# k = 5
 set.seed(55)
 k_cl <- kmeans(sample_maha,5,nstart=25) # with outliers
 k_cl 
 ```
 
 ```{r}
+# k = 5
 set.seed(55)
-k_cl2 <- kmeans(sample_maha_updated,6,nstart=25) # without outliers
+k_cl2 <- kmeans(sample_maha_updated,5,nstart=25) # without outliers
 k_cl2
 ```
 
@@ -693,5 +695,6 @@ k_cl2$centers
 sample_maha$cluster <- k_cl$cluster
 sample_maha_updated$cluster <- k_cl2$cluster
 ```
+
 
 
