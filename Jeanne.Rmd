@@ -748,8 +748,11 @@ fviz_cluster(k_cl3, data = sample_maha_updated) # without outliers, k=3
 
 # Assign cluster labels to each data point
 ```{r}
-sample_maha$cluster <- k_cl$cluster
-sample_maha_updated$cluster <- k_cl2$cluster
+sample_maha_labelled <- sample_maha
+sample_maha_labelled$cluster <- k_cl$cluster
+
+sample_maha_updated_labelled <- sample_maha_updated
+sample_maha_updated_labelled$cluster <- k_cl2$cluster
 ```
 
 # See cluster size
@@ -758,3 +761,25 @@ sample_maha_updated$cluster <- as.factor(sample_maha_updated$cluster)
 summary(sample_maha_updated)
 ```
 
+## In order to decide between Hierarchical and Non-Hierarchical Clustering, k=5, we use internal validation to find the % of cases that are assigned to the same cluster. 
+
+## Internal Validation for Sample without Outlier
+```{r}
+sample_validation <- sample_n(sample_maha_updated, 200)
+
+distance_validation <- dist(sample_validation, method = "euclidean")
+
+set.seed(240)  # Setting seed
+Hierar_valid <- hclust(distance_validation, method = "ward")
+
+Hierar_valid
+
+plot(Hierar_valid)
+
+# Cutting tree by no. of clusters
+fit2 <- cutree(Hierar_valid, k = 5 )
+fit2
+```
+
+Assign cluster number to sample
+```
