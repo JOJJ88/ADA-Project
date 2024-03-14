@@ -478,8 +478,7 @@ print.psych(pcModel3q, cut=0.3, sort=TRUE)
 # Define linkage methods
 ```{r}
 # sample_ca <- sample_maha_updated %>% select(-acc_now_delinq)
-sample_ca_hc <- scale(sample_maha_updated)
-headTail(sample_ca_hc)
+headTail(sample_maha_updated)
 m <- c("average", "single", "complete", "ward")
 names(m) <- c("average", "single", "complete", "ward")
 ```
@@ -488,7 +487,7 @@ names(m) <- c("average", "single", "complete", "ward")
 ```{r}
 library(cluster)
 ac <- function(x){
-  agnes(sample_ca_hc, method =x)$ac
+  agnes(sample_maha_updated, method =x)$ac
 }
 ```
 
@@ -503,9 +502,9 @@ sapply(m, ac)
 ```{r}
 # Produce plot of clusters vs. gap statistic
 library(factoextra)
-gap_stat_h1 <- clusGap(sample_ca_hc, FUN = hcut, rstart = 25, K.max = 10, B = 50)
+gap_stat_h1 <- clusGap(sample_maha_updated, FUN = hcut, rstart = 25, K.max = 10, B = 50)
 # gap_stat_k1 <- clusGap(sample_ca, FUN = kmeans, nstart = 25, K.max = 10, B = 50)
-gap_stat_h2 <- clusGap(sample_ca_hc, FUN = hcut, rstart = 25, K.max = 20, B = 50)
+gap_stat_h2 <- clusGap(sample_maha_updated, FUN = hcut, rstart = 25, K.max = 20, B = 50)
 # gap_stat_k2 <- clusGap(sample_ca, FUN = kmeans, nstart = 25, K.max = 20, B = 50)
 
 fviz_gap_stat(gap_stat_h1)
@@ -520,7 +519,7 @@ fviz_gap_stat(gap_stat_h2)
 ```{r}
 # Plot dandrogram
 # Finding distance matrix
-distance_mat1 <- dist(sample_ca_hc, method = "euclidean")
+distance_mat1 <- dist(sample_maha_updated, method = "euclidean")
 
 set.seed(240)  # Setting seed
 Hierar_cl1 <- hclust(distance_mat1, method = "ward")
@@ -547,12 +546,12 @@ table(fit1_1)
 
 ```{r}
 # Hierarchical Clustering without Factor Analysis
-final_ca <- cbind(sample_ca_hc, cluster = fit1)
+final_ca <- cbind(sample_maha_updated, cluster = fit1)
 head(final_ca)
 hcentres1 <- aggregate(x=final_ca, by=list(cluster=fit1), FUN="mean")
 print(hcentres1)
 
-final_ca_1 <- cbind(sample_ca_hc, cluster = fit1_1)
+final_ca_1 <- cbind(sample_maha_updated, cluster = fit1_1)
 head(final_ca_1)
 hcentres1_1 <- aggregate(x=final_ca_1, by=list(cluster=fit1_1), FUN="mean")
 print(hcentres1_1)
@@ -700,9 +699,23 @@ k_cl2$centers # without outliers, k=5
 k_cl3$centers # without outliers, k=3
 ```
 
+# Visualise clusters
+```{r}
+fviz_cluster(k_cl, data = sample_maha) # with outliers, k = 5
+```
+
+```{r}
+fviz_cluster(k_cl2, data = sample_maha_updated) # without outliers, k=5
+```
+
+```{r}
+fviz_cluster(k_cl3, data = sample_maha_updated) # without outliers, k=3
+```
+
 # Assign cluster labels to each data point
 ```{r}
 sample_maha$cluster <- k_cl$cluster
 sample_maha_updated$cluster <- k_cl2$cluster
 ```
+
 
