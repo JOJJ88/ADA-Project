@@ -491,7 +491,7 @@ ac <- function(x){
 }
 ```
 
-# Calculate agglomerative coeficient for each clustering linkage method
+# Calculate agglomerative coefficient for each clustering linkage method
 ```{r}
 sapply(m, ac)
 
@@ -529,6 +529,18 @@ Hierar_cl1
 plot(Hierar_cl1)
 
 ```
+
+Silhouette plot for hcut
+```{r}
+fviz_nbclust(sample_maha_updated, hcut, method = "silhouette")
+```
+
+
+Create elbow plot (without outliers)
+```{r}
+fviz_nbclust(sample_maha_updated, hcut, method = "wss")
+```
+
 
 ```{r}
 # Cutting tree by no. of clusters
@@ -578,7 +590,17 @@ produce plot of clusters vs. gap statistic
 fviz_gap_stat(gap_stat_k) # with outliers
 ```
 
+Silhouette plot
+```{r}
+fviz_nbclust(sample_maha, kmeans, method = "silhouette")
+```
+
 Create elbow plot (with outliers)
+```{r}
+fviz_nbclust(sample_maha, kmeans, method = "wss")
+```
+
+
 ```{r}
 # Define a range of k values to explore (adjust based on your data)
 k_values <- 1:10
@@ -619,11 +641,23 @@ ggplot(elbow_data, aes(x = k, y = wss)) +
   scale_x_continuous(breaks = seq(0, 10, by=1))
 ```
 
+produce plot of clusters vs. gap statistic
 ```{r}
 fviz_gap_stat(gap_stat_k2) # without outliers
 ```
 
-Create elbow plot (without outliers)
+Silhouette plot for kmeans
+```{r}
+fviz_nbclust(sample_maha_updated, kmeans, method = "silhouette")
+# without outliers
+```
+
+Elbow plot for kmeans
+```{r}
+fviz_nbclust(sample_maha_updated, kmeans, method = "wss")
+```
+
+
 ```{r}
 # Define a range of k values to explore (adjust based on your data)
 k_values <- 1:10
@@ -718,4 +752,9 @@ sample_maha$cluster <- k_cl$cluster
 sample_maha_updated$cluster <- k_cl2$cluster
 ```
 
+# See cluster size
+```{r}
+sample_maha_updated$cluster <- as.factor(sample_maha_updated$cluster)
+summary(sample_maha_updated)
+```
 
