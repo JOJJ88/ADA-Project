@@ -305,15 +305,16 @@ Utilizing Spearman correlation with our assumption of normal data distribution, 
 * $r=0$ means no correlation. 
 * $r= -1$ means a perfect negative correlation. 
 
-### Method 1
-```{r}
-numeric_sample <- as.data.frame(lapply(df3, as.numeric))
-correlation_matrix_spearman <- cor(numeric_sample, method = "spearman")
-print(correlation_matrix_spearman)
-corrplot(correlation_matrix_spearman, tl.cex = 0.6)
-```
+#### Method 1
+#```{r}
+#numeric_sample <- as.data.frame(lapply(df3, as.numeric))
+#correlation_matrix_spearman <- cor(numeric_sample, method = #"spearman")
+#print(correlation_matrix_spearman)
+#corrplot(correlation_matrix_spearman, tl.cex = 0.6)
+#```
 
-### Method 2 (same correlation data, different visualisation styles)
+
+### Method 2 (same correlation data, different visualisation styles)(Remove method1)
 ```{r}
 
 numeric_sample <- as.data.frame(lapply(df3, as.numeric))
@@ -370,17 +371,17 @@ summary(sample_norm)
 ```
 
 ## Mahalanobi's
-For sample:
-```{r}
-Maha2 <- mahalanobis(sample, colMeans(sample), cov(sample))
-print(Maha2) # prints Mahalanobis distance
 
-MahaPvalue2 <-pchisq(Maha2, df=10,lower.tail = FALSE) # prints the p-value for each Mahalanobis distance
-sample_maha2 <- cbind(sample, Maha2, MahaPvalue2)
-sample_maha2 <- sample_maha2 %>% select(-acc_now_delinq)
-sample_maha_updated2 <- sample_maha2 %>% filter(MahaPvalue2 > 0.001) # only keep the rows which p-value is greater than 0.001 as those smaller than 0.001 are considered outliers
-sample_maha_updated2 <- sample_maha_updated2[-c(18:19)]
-```
+#For sample: (Removed)
+#```{r}
+#Maha2 <- mahalanobis(sample, colMeans(sample), cov(sample))
+#print(Maha2) # prints Mahalanobis distance#
+#MahaPvalue2 <-pchisq(Maha2, df=10,lower.tail = FALSE) # prints the p-value for each Mahalanobis distance
+#sample_maha2 <- cbind(sample, Maha2, MahaPvalue2)
+#sample_maha2 <- sample_maha2 %>% select(-acc_now_delinq)
+#sample_maha_updated2 <- sample_maha2 %>% filter(MahaPvalue2 > 0.001) # only keep the rows which p-value is greater than 0.001 as those smaller than 0.001 are considered outliers
+#sample_maha_updated2 <- sample_maha_updated2[-c(18:19)]
+#```
 
 For normalised sample:
 ```{r}
