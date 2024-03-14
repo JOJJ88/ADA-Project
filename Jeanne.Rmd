@@ -578,12 +578,92 @@ produce plot of clusters vs. gap statistic
 ```{r}
 fviz_gap_stat(gap_stat_k) # with outliers
 ```
-From the plot we can see that the gap statistic is high at k = 4.
+
+Create elbow plot (with outliers)
+```{r}
+# Define a range of k values to explore (adjust based on your data)
+k_values <- 1:10
+
+# Empty list to store WSS for different k values
+wss_list <- list()
+
+# Function to calculate WSS within a loop
+calculate_wss <- function(data, k) {
+  # Perform K-Means clustering with specific k
+  kmeans_result <- kmeans(data, centers = k, nstart = 10)
+  
+  # Calculate within-cluster sum of squares
+  wss <- sum(kmeans_result$withinss)
+  return(wss)
+}
+
+# Loop through k values and calculate WSS
+for (k in k_values) {
+  wss_list[[k]] <- calculate_wss(sample_maha, k)
+}
+
+# Combine results into a data frame
+wss <- unlist(wss_list)
+elbow_data <- data.frame(k = k_values, wss = wss)
+
+# Create the ggplot for the elbow plot
+library(ggplot2)
+ggplot(elbow_data, aes(x = k, y = wss)) +
+  geom_line() +
+  labs(title = "Elbow Plot", x = "Number of Clusters (k)", y = "Within-Cluster Sum of Squares (WSS)") +
+  theme_classic() +
+  theme(
+    plot.title = element_text(size = 14, face = "bold"),
+    axis.text.x = element_text(size = 12),
+    axis.text.y = element_text(size = 12)
+  ) +
+  scale_x_continuous(breaks = seq(0, 10, by=1))
+```
 
 ```{r}
 fviz_gap_stat(gap_stat_k2) # without outliers
 ```
-From the plot we can see that the gap statistic is high at k=3. This suggests that the outliers may form a cluster of their own.
+
+Create elbow plot (without outliers)
+```{r}
+# Define a range of k values to explore (adjust based on your data)
+k_values <- 1:10
+
+# Empty list to store WSS for different k values
+wss_list <- list()
+
+# Function to calculate WSS within a loop
+calculate_wss <- function(data, k) {
+  # Perform K-Means clustering with specific k
+  kmeans_result <- kmeans(data, centers = k, nstart = 10)
+  
+  # Calculate within-cluster sum of squares
+  wss <- sum(kmeans_result$withinss)
+  return(wss)
+}
+
+# Loop through k values and calculate WSS
+for (k in k_values) {
+  wss_list[[k]] <- calculate_wss(sample_maha_updated, k)
+}
+
+# Combine results into a data frame
+wss <- unlist(wss_list)
+elbow_data <- data.frame(k = k_values, wss = wss)
+
+# Create the ggplot for the elbow plot
+library(ggplot2)
+ggplot(elbow_data, aes(x = k, y = wss)) +
+  geom_line() +
+  labs(title = "Elbow Plot", x = "Number of Clusters (k)", y = "Within-Cluster Sum of Squares (WSS)") +
+  theme_classic() +
+  theme(
+    plot.title = element_text(size = 14, face = "bold"),
+    axis.text.x = element_text(size = 12),
+    axis.text.y = element_text(size = 12)
+  ) +
+  scale_x_continuous(breaks = seq(0, 10, by=1))
+```
 
 # Run k-means
 ```{r}
@@ -614,44 +694,4 @@ sample_maha$cluster <- k_cl$cluster
 sample_maha_updated$cluster <- k_cl2$cluster
 ```
 
-# Create elbow plot
-```{r}
-sample_maha$cluster <- as.factor(sample_maha$cluster)
-# Define a range of k values to explore (adjust based on your data)
-k_values <- 1:10
-
-# Empty list to store WSS for different k values
-wss_list <- list()
-
-# Function to calculate WSS within a loop
-calculate_wss <- function(data, k) {
-  # Perform K-Means clustering with specific k
-  kmeans_result <- kmeans(data, centers = k, nstart = 10)
-  
-  # Calculate within-cluster sum of squares
-  wss <- sum(kmeans_result$withinss)
-  return(wss)
-}
-
-# Loop through k values and calculate WSS
-for (k in k_values) {
-  wss_list[[k]] <- calculate_wss(features, k)
-}
-
-# Combine results into a data frame
-wss <- unlist(wss_list)
-elbow_data <- data.frame(k = k_values, wss = wss)
-
-# Create the ggplot for the elbow plot
-library(ggplot2)
-ggplot(elbow_data, aes(x = k, y = wss)) +
-  geom_line() +
-  labs(title = "Elbow Plot", x = "Number of Clusters (k)", y = "Within-Cluster Sum of Squares (WSS)") +
-  theme_classic() +
-  theme(
-    plot.title = element_text(size = 14, face = "bold"),
-    axis.text.x = element_text(size = 12),
-    axis.text.y = element_text(size = 12)
-  )
-```
 
