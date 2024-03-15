@@ -418,7 +418,7 @@ corrplot(correlation_matrix_spearman, method = "color", addCoef.col = "black",
 
 We see that the correlation plots (after removal of outliers) for both unnormalised and normalised samples are the same, suggesting that the same outliers are removed irregardless of normalisation.
 
-
+We decide to remove outliers because they only represent 9.67% of the sample size, and is a small and non-representative group of observations as compared to the others. As cluster analysis is sensitive to outliers, we decide to remove outliers to avoid skewing our clusters.
 
 # Choose the attribute that have pairwise correlation coefficients >0.3
 ```{r}
@@ -563,7 +563,7 @@ print(hcentres1)
 
 ```
 
-## Cluster Analysis- Hierarchical Clustering
+## Cluster Analysis- Non-Hierarchical Clustering
 
 ```{r}
 library(factoextra)
@@ -725,11 +725,9 @@ fviz_cluster(k_cl2, data = sample_maha_updated) # without outliers, k=4
 # Assign cluster labels to each data point in original un-normalised sample
 ```{r}
 # Hierarchical clustering:
-# without outliers, k=3
-
-  
-# without outliers, k=5
-
+# without outliers, k=4
+sample_maha_updated22 <- sample_maha_updated2
+sample_maha_updated22$cluster <-fit1
 
 # K-means clustering:
 # with outliers, k=4
@@ -739,25 +737,27 @@ sample_maha2$cluster <- k_cl$cluster
 sample_maha_updated2$cluster <- k_cl2$cluster
 ```
 
-# Left join labelled sample data with other variables in original population
+# Left join labelled sample data with other variables in original population (df)
 ```{r}
+
 # Hierarchical clustering:
-# without outliers, k=3
+# without outliers, k=4
+result_h_wo <- merge(sample_maha_updated22, df, by = c("funded_amnt", "int_rate", "emp_length", "annual_inc", "dti", "inq_last_6mths", "pub_rec", "revol_bal", "revol_util", "total_acc", "tot_coll_amt", "tot_cur_bal", "total_credit_rv"), all.x = TRUE)
 
-  
-# without outliers, k=5
+n_distinct(result_h_wo$id) # double check that each and every row is unique
 
+write.csv(result_h_wo, "sample with outliers hcut k=4.csv",row.names = FALSE) # output as csv file for further analysis
 
 # K-means clustering:
 # with outliers, k=4
-result_w <- merge(sample_maha2, df, by = c("funded_amnt", "int_rate", "emp_length", "annual_inc", "dti", "inq_last_6mths", "pub_rec", "revol_bal", "revol_util", "total_acc", "tot_coll_amt", "tot_cur_bal", "total_credit_rv"), all.x = TRUE)
+result_k_w <- merge(sample_maha2, df, by = c("funded_amnt", "int_rate", "emp_length", "annual_inc", "dti", "inq_last_6mths", "pub_rec", "revol_bal", "revol_util", "total_acc", "tot_coll_amt", "tot_cur_bal", "total_credit_rv"), all.x = TRUE)
 
 n_distinct(result_w$id) # double check that each and every row is unique
 
 write.csv(result_w, "sample with outliers kmeans k=4.csv",row.names = FALSE) # output as csv file for further analysis
 
 # without outliers, k=4
-result_wo <- merge(sample_maha_updated2, df, by = c("funded_amnt", "int_rate", "emp_length", "annual_inc", "dti", "inq_last_6mths", "pub_rec", "revol_bal", "revol_util", "total_acc", "tot_coll_amt", "tot_cur_bal", "total_credit_rv"), all.x = TRUE)
+result_k_wo <- merge(sample_maha_updated2, df, by = c("funded_amnt", "int_rate", "emp_length", "annual_inc", "dti", "inq_last_6mths", "pub_rec", "revol_bal", "revol_util", "total_acc", "tot_coll_amt", "tot_cur_bal", "total_credit_rv"), all.x = TRUE)
 
 n_distinct(result_wo$id) # double check that each and every row is unique
 
@@ -788,7 +788,7 @@ sample_maha_updated2 %>%
 
 ## Internal Validation for Sample without Outlier
 
-Because the smallest cluster only has 24 data points, which is 4.43% of the sample size, hence we decide to randomly take 200 data points for the validation sample in order to sample each cluster sufficiently.
+Because the smallest cluster only has 24 data points, which is 4.43% of the sample size of 542, hence we decide to randomly take 200 data points for the validation sample in order to sample each cluster sufficiently.
 
 Extract validation sample of size 200
 ```{r}
@@ -807,11 +807,11 @@ Hierar_valid
 plot(Hierar_valid)
 
 # Cutting tree by no. of clusters
-fit2 <- cutree(Hierar_valid, k = 5 )
+fit2 <- cutree(Hierar_valid, k = 4 )
 fit2
 
 final_ca2 <- cbind(sample_validation, cluster = fit2)
-head(final_ca)
+head(final_ca2)
 hcentres2 <- aggregate(x=final_ca2, by=list(cluster=fit2), FUN="mean")
 print(hcentres2)
 ```
