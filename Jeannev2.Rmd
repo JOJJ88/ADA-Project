@@ -833,3 +833,4 @@ result_validation <- result_validation %>% mutate(equal = cluster == validation_
 sum(result_validation$equal == FALSE)/nrow(result_validation)
 ```
 
+55,5% of cases are assigned to a different cluster, suggesting that our solution is rather unstable.
