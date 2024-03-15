@@ -829,7 +829,7 @@ result_validation<- merge(final_ca2, final_ca, by = c("funded_amnt", "int_rate",
 # creates new column 'equal' that tells us whether original cluster number is equal to validation cluster number
 result_validation <- result_validation %>% mutate(equal = cluster == validation_cluster)
 
-# calculates the % of FALSE over total, which indicates the % if cases assigned to same cluster
+# calculates the % of FALSE over total, which indicates the % if cases assigned to different cluster
 sum(result_validation$equal == FALSE)/nrow(result_validation)
 ```
 
