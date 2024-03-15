@@ -788,12 +788,15 @@ sample_maha_updated2 %>%
 
 ## Internal Validation for Sample without Outlier
 
+We choose hierarchical clustering over kmeans because hierarchical produces more distinct clusters in which we can better interpret the customer segments, by stringing the variables of interest together in a narrative to describe each customer segment.
 
+Using domain knowledge, by looking at the centroid values, we can clearly identify 2 clusters consisting of high creditworthiness customers (using variables usually associated with creditworthiness, such as low interest rate, high credit grade, ) and 2 clusters consisting of low creditworthiness customers.
 
 Because the smallest cluster only has 24 data points, which is 4.43% of the sample size of 542, hence we decide to randomly take 200 data points for the validation sample in order to sample each cluster sufficiently.
 
 Extract validation sample of size 200
 ```{r}
+set.seed(240)
 sample_validation <- sample_n(sample_maha_updated, 200)
 ```
 
@@ -811,11 +814,22 @@ plot(Hierar_valid)
 # Cutting tree by no. of clusters
 fit2 <- cutree(Hierar_valid, k = 4 )
 fit2
-
-final_ca2 <- cbind(sample_validation, cluster = fit2)
+table(fit2)
+final_ca2 <- cbind(sample_validation, validation_cluster = fit2)
 head(final_ca2)
 hcentres2 <- aggregate(x=final_ca2, by=list(cluster=fit2), FUN="mean")
 print(hcentres2)
 ```
 
+
+# Compare original cluster number to validation cluster number
+```{r}
+result_validation<- merge(final_ca2, final_ca, by = c("funded_amnt", "int_rate", "sub_grade", "emp_length", "annual_inc", "loan_status", "dti", "delinq_2yrs", "inq_last_6mths", "pub_rec", "revol_bal", "revol_util", "total_acc", "tot_coll_amt", "tot_cur_bal", "total_credit_rv", "months_since_last_credit_pull"), all.x = TRUE)
+
+# creates new column 'equal' that tells us whether original cluster number is equal to validation cluster number
+result_validation <- result_validation %>% mutate(equal = cluster == validation_cluster)
+
+# calculates the % of FALSE over total, which indicates the % if cases assigned to same cluster
+sum(result_validation$equal == FALSE)/nrow(result_validation)
+```
 
