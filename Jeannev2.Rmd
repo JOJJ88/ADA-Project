@@ -709,6 +709,7 @@ k_cl$centers # with outliers, k = 4
 
 ```{r}
 k_cl2$centers # without outliers, k=4
+k_cl_table<- k_cl2$centers
 ```
 
 
@@ -752,9 +753,9 @@ write.csv(result_h_wo, "sample with outliers hcut k=4.csv",row.names = FALSE) # 
 # with outliers, k=4
 result_k_w <- merge(sample_maha2, df, by = c("funded_amnt", "int_rate", "emp_length", "annual_inc", "dti", "inq_last_6mths", "pub_rec", "revol_bal", "revol_util", "total_acc", "tot_coll_amt", "tot_cur_bal", "total_credit_rv"), all.x = TRUE)
 
-n_distinct(result_w$id) # double check that each and every row is unique
+n_distinct(result_k_w$id) # double check that each and every row is unique
 
-write.csv(result_w, "sample with outliers kmeans k=4.csv",row.names = FALSE) # output as csv file for further analysis
+write.csv(result_k_w, "sample with outliers kmeans k=4.csv",row.names = FALSE) # output as csv file for further analysis
 
 # without outliers, k=4
 result_k_wo <- merge(sample_maha_updated2, df, by = c("funded_amnt", "int_rate", "emp_length", "annual_inc", "dti", "inq_last_6mths", "pub_rec", "revol_bal", "revol_util", "total_acc", "tot_coll_amt", "tot_cur_bal", "total_credit_rv"), all.x = TRUE)
@@ -784,9 +785,10 @@ sample_maha_updated2 %>%
   count(cluster) 
 ```
 
-##In order to decide between Hierarchical and Non-Hierarchical Clustering, k=4, we use internal validation to find the % of cases that are assigned to the same cluster. 
 
 ## Internal Validation for Sample without Outlier
+
+
 
 Because the smallest cluster only has 24 data points, which is 4.43% of the sample size of 542, hence we decide to randomly take 200 data points for the validation sample in order to sample each cluster sufficiently.
 
@@ -814,13 +816,6 @@ final_ca2 <- cbind(sample_validation, cluster = fit2)
 head(final_ca2)
 hcentres2 <- aggregate(x=final_ca2, by=list(cluster=fit2), FUN="mean")
 print(hcentres2)
-```
-
-Non-Hierarchical Clustering for validation sample
-```{r}
-set.seed(55)
-k_cl_valid <- kmeans(sample_validation,4,nstart=25)
-k_cl_valid$centers
 ```
 
 
