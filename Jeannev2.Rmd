@@ -373,9 +373,17 @@ MahaPvalue2 <-pchisq(Maha2, df=10,lower.tail = FALSE) # prints the p-value for e
 sample_maha2 <- cbind(sample, Maha2, MahaPvalue2)
 sample_maha2 <- sample_maha2 %>% select(-acc_now_delinq)
 sample_maha_updated2 <- sample_maha2 %>% filter(MahaPvalue2 > 0.001) # only keep the rows which p-value is greater than 0.001 as those smaller than 0.001 are considered outliers
+sample_maha_outlier2 <- sample_maha2 %>% filter(MahaPvalue2 < 0.001)
+sample_maha_outlier2 <- sample_maha_outlier2[-c(18:19)]
 sample_maha_updated2 <- sample_maha_updated2[-c(18:19)]
-sample_maha2 <-sample_maha2[-c(18:19)]
+sample_maha2 <- sample_maha2[-c(18:19)]
 ```
+
+Export outliers as csv to investigate further:
+```{r}
+write.csv(sample_maha_outlier2, "maha outliers.csv",row.names = FALSE)
+```
+
 
 For normalised sample:
 ```{r}
@@ -760,9 +768,9 @@ write.csv(result_k_w, "sample with outliers kmeans k=4.csv",row.names = FALSE) #
 # without outliers, k=4
 result_k_wo <- merge(sample_maha_updated2, df, by = c("funded_amnt", "int_rate", "emp_length", "annual_inc", "dti", "inq_last_6mths", "pub_rec", "revol_bal", "revol_util", "total_acc", "tot_coll_amt", "tot_cur_bal", "total_credit_rv"), all.x = TRUE)
 
-n_distinct(result_K_wo$id) # double check that each and every row is unique
+n_distinct(result_k_wo$id) # double check that each and every row is unique
 
-write.csv(result_K_wo, "sample without outliers kmeans k=4.csv",row.names = FALSE) # output as csv file for further analysis 
+write.csv(result_k_wo, "sample without outliers kmeans k=4.csv",row.names = FALSE) # output as csv file for further analysis 
 ```
 
 
