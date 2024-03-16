@@ -760,9 +760,9 @@ write.csv(result_k_w, "sample with outliers kmeans k=4.csv",row.names = FALSE) #
 # without outliers, k=4
 result_k_wo <- merge(sample_maha_updated2, df, by = c("funded_amnt", "int_rate", "emp_length", "annual_inc", "dti", "inq_last_6mths", "pub_rec", "revol_bal", "revol_util", "total_acc", "tot_coll_amt", "tot_cur_bal", "total_credit_rv"), all.x = TRUE)
 
-n_distinct(result_wo$id) # double check that each and every row is unique
+n_distinct(result_K_wo$id) # double check that each and every row is unique
 
-write.csv(result_wo, "sample without outliers kmeans k=4.csv",row.names = FALSE) # output as csv file for further analysis 
+write.csv(result_K_wo, "sample without outliers kmeans k=4.csv",row.names = FALSE) # output as csv file for further analysis 
 ```
 
 
